@@ -23,11 +23,26 @@ function UserProfilePage() {
 
   if (!user) return <p>Loading...</p>;
 
-  return (
-    <div className="container">
-      <h2>{user.username}'s Profile</h2>
-      {user.avatarUrl && <img src={user.avatarUrl} alt="avatar" width={80} style={{ borderRadius: '50%' }} />}
+const backendUrl = import.meta.env.VITE_API_BASE;
+const avatarUrl = user.avatarUrl?.startsWith('http')
+  ? user.avatarUrl
+  : `${backendUrl}${user.avatarUrl}`;
 
+  return (
+  <div className="container">
+    <div  style={{display: 'flex', flexDirection:"row", gap: "4rem"}}>
+    <div>
+      <h2>{user.username}'s Profile</h2>
+      {user.avatarUrl && <img src={avatarUrl} alt="avatar" width={80} style={{ borderRadius: '50%' }} />}
+      </div>
+      <div style={{ marginTop: 30 }}>
+        <h3>User Information</h3>
+        <p><strong>Username:</strong> {user.username}</p>
+        <p><strong>Handle:</strong> {user.handle}</p>
+        <p><strong>Location:</strong> {user.location}</p>
+        <p><strong>Bio:</strong> {user.bio}</p>
+      </div>
+      </div>
       <div style={{ marginTop: 30 }}>
         <h3>Create New Post</h3>
         <textarea
@@ -52,5 +67,6 @@ function UserProfilePage() {
     </div>
   );
 }
+
 
 export default UserProfilePage;

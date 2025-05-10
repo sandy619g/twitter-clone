@@ -8,10 +8,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,20 +42,46 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        logger.info("Creating user: {}", user.getUsername());
-        return userRepo.save(user);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<User> createUser(
+            @RequestPart("username") String username,
+            @RequestPart("handle") String handle,
+            @RequestPart("location") String location,
+            @RequestPart("bio") String bio,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile
+    ) {
+        try {
+            User user = new User();
+            user.setUsername(username);
+            user.setHandle(handle);
+            user.setLocation(location);
+            user.setBio(bio);
+
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                String fileName = UUID.randomUUID() + "_" + avatarFile.getOriginalFilename();
+                Path path = Paths.get("uploads/" + fileName);
+                Files.createDirectories(path.getParent());
+                Files.write(path, avatarFile.getBytes());
+                user.setAvatarUrl("/uploads/" + fileName);
+            }
+
+            return ResponseEntity.ok(userRepo.save(user));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload avatar", e);
+        }
     }
 
+
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        logger.info("Updating user with id {}", id);
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User data) {
         return userRepo.findById(id).map(user -> {
-            user.setUsername(updatedUser.getUsername());
-            user.setAvatarUrl(updatedUser.getAvatarUrl());
+            user.setUsername(data.getUsername());
+            user.setHandle(data.getHandle());
+            user.setLocation(data.getLocation());
+            user.setBio(data.getBio());
+            user.setAvatarUrl(data.getAvatarUrl());
             return ResponseEntity.ok(userRepo.save(user));
-        }).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
