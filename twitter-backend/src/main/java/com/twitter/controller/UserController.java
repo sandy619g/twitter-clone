@@ -62,7 +62,7 @@ public class UserController {
                 Path path = Paths.get("uploads/" + fileName);
                 Files.createDirectories(path.getParent());
                 Files.write(path, avatarFile.getBytes());
-                user.setAvatarUrl("/uploads/" + fileName);
+                user.setAvatarUrl("uploads/" + fileName);
             }
 
             return ResponseEntity.ok(userRepo.save(user));
