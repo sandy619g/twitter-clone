@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 
 function CreateUserPage() {
@@ -25,7 +25,7 @@ function CreateUserPage() {
     formData.append('bio', bio);
     if (avatar) formData.append('avatar', avatar);
 
-    axios.post('/api/users', formData)
+    api.post('/users', formData)
       .then((response) => {
         alert('User created successfully!');
         // Redirect to the newly created user's profile page

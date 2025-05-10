@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 
 function UserProfilePage() {
   const { id } = useParams();
@@ -9,15 +9,15 @@ function UserProfilePage() {
   const [newPost, setNewPost] = useState('');
 
   useEffect(() => {
-    axios.get(`/api/users/${id}`).then(res => setUser(res.data));
-    axios.get(`/api/posts/user/${id}`).then(res => setPosts(res.data));
+    api.get(`/users/${id}`).then(res => setUser(res.data));
+    api.get(`/posts/user/${id}`).then(res => setPosts(res.data));
   }, [id]);
 
   const handlePost = () => {
     if (!newPost.trim()) return;
-    axios.post(`/api/posts/user/${id}`, { content: newPost }).then(() => {
+    api.post(`/posts/user/${id}`, { content: newPost }).then(() => {
       setNewPost('');
-      axios.get(`/api/posts/user/${id}`).then(res => setPosts(res.data));
+      api.get(`/posts/user/${id}`).then(res => setPosts(res.data));
     });
   };
 

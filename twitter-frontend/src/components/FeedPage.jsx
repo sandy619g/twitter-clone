@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { Link } from 'react-router-dom';
 
 function FeedPage() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    axios.get('api/posts')
+    api.get('/posts')
       .then(res => setPosts(res.data))
       .catch(err => console.error('Error fetching posts:', err));
   }, []);

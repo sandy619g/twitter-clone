@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 
 function HomePage() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/users').then(res => setUsers(res.data));
+    api.get('/users').then(res => setUsers(res.data));
   }, []);
 
   return (
