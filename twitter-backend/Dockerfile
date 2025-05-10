@@ -1,11 +1,12 @@
-# Use OpenJDK 17 base image
-FROM openjdk:21-jdk-slim
-
-# Set working directory
+# Stage 1 - Build the application using Maven
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the built JAR (you'll build it during Docker build)
-COPY target/*.jar app.jar
-
-# Run the Spring Boot app
+# Stage 2 - Run the built JAR with Java 21
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
