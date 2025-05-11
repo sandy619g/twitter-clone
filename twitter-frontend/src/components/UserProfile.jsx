@@ -9,15 +9,15 @@ function UserProfilePage() {
   const [newPost, setNewPost] = useState('');
 
   useEffect(() => {
-    api.get(`/users/${id}`).then(res => setUser(res.data));
-    api.get(`/posts/user/${id}`).then(res => setPosts(res.data));
+    api.get(`/api/users/${id}`).then(res => setUser(res.data));
+    api.get(`/api/posts/user/${id}`).then(res => setPosts(res.data));
   }, [id]);
 
   const handlePost = () => {
     if (!newPost.trim()) return;
-    api.post(`/posts/user/${id}`, { content: newPost }).then(() => {
+    api.post(`/api/posts/user/${id}`, { content: newPost }).then(() => {
       setNewPost('');
-      api.get(`/posts/user/${id}`).then(res => setPosts(res.data));
+      api.get(`/api/posts/user/${id}`).then(res => setPosts(res.data));
     });
   };
 
@@ -33,7 +33,7 @@ const avatarUrl = user.avatarUrl?.startsWith('http')
     <div  style={{display: 'flex', flexDirection:"row", gap: "4rem"}}>
     <div>
       <h2>{user.username}'s Profile</h2>
-      {user.avatarUrl && <img src={avatarUrl} alt="avatar" width={80} style={{ borderRadius: '50%' }} />}
+      {user.avatarUrl && <img src={avatarUrl} alt="avatar" width={180} style={{ borderRadius: '50%' }} />}
       </div>
       <div style={{ marginTop: 30 }}>
         <h3>User Information</h3>

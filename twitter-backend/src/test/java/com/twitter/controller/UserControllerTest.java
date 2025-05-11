@@ -1,21 +1,19 @@
 package com.twitter.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twitter.model.User;
 import com.twitter.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -26,7 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
+
     @MockitoBean
     private UserRepository userRepo;
 
@@ -36,8 +36,11 @@ public class UserControllerTest {
     void setup() {
         user = new User();
         user.setId(1L);
-        user.setUsername("johndoe");
-        user.setAvatarUrl("avatar.png");
+        user.setUsername("Sandy Doe");
+        user.setHandle("@johndoe");
+        user.setLocation("NY");
+        user.setBio("Bio here");
+        user.setAvatarUrl("uploads/avatar.jpg");
     }
 
     @Test
@@ -46,7 +49,7 @@ public class UserControllerTest {
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].username").value("johndoe"));
+                .andExpect(jsonPath("$[0].username").value("Sandy Doe"));
     }
 
     @Test
@@ -55,7 +58,7 @@ public class UserControllerTest {
 
         mockMvc.perform(get("/api/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("johndoe"));
+                .andExpect(jsonPath("$.username").value("Sandy Doe"));
     }
 
     @Test
@@ -68,29 +71,51 @@ public class UserControllerTest {
 
     @Test
     void createUser_shouldSave() throws Exception {
+        MockMultipartFile usernamePart = new MockMultipartFile("username", "", "text/plain", "Sandy Doe".getBytes());
+        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@johndoe".getBytes());
+        MockMultipartFile locationPart = new MockMultipartFile("location", "", "text/plain", "NY".getBytes());
+        MockMultipartFile bioPart = new MockMultipartFile("bio", "", "text/plain", "A cool bio".getBytes());
+
+        MockMultipartFile avatarFile = new MockMultipartFile("avatar", "avatar.jpg", "image/jpeg", "dummy".getBytes());
+
         when(userRepo.save(any(User.class))).thenReturn(user);
 
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(user)))
+        mockMvc.perform(multipart("/api/users")
+                        .file(usernamePart)
+                        .file(handlePart)
+                        .file(locationPart)
+                        .file(bioPart)
+                        .file(avatarFile)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("johndoe"));
+                .andExpect(jsonPath("$.username").value("Sandy Doe"));
     }
 
     @Test
     void updateUser_found() throws Exception {
         User updated = new User();
-        updated.setUsername("newname");
+        updated.setUsername("Roby");
+        updated.setHandle("@roby");
+        updated.setLocation("CA");
+        updated.setBio("new bio");
         updated.setAvatarUrl("new.png");
 
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepo.save(any(User.class))).thenReturn(user);
+        when(userRepo.save(any(User.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(updated)))
+                        .content("""
+                            {
+                              "username": "Roby",
+                              "handle": "@roby",
+                              "location": "CA",
+                              "bio": "new bio",
+                              "avatarUrl": "new.png"
+                            }
+                        """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("newname"));
+                .andExpect(jsonPath("$.username").value("Roby"));
     }
 
     @Test
@@ -99,7 +124,15 @@ public class UserControllerTest {
 
         mockMvc.perform(put("/api/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(user)))
+                        .content("""
+                            {
+                              "username": "Roby",
+                              "handle": "@roby",
+                              "location": "CA",
+                              "bio": "new bio",
+                              "avatarUrl": "new.png"
+                            }
+                        """))
                 .andExpect(status().isNotFound());
     }
 
@@ -119,4 +152,3 @@ public class UserControllerTest {
                 .andExpect(status().isNotFound());
     }
 }
-

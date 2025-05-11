@@ -25,10 +25,9 @@ function CreateUserPage() {
     formData.append('bio', bio);
     if (avatar) formData.append('avatar', avatar);
 
-    api.post('/users', formData)
+    api.post('/api/users', formData)
       .then((response) => {
         alert('User created successfully!');
-        // Redirect to the newly created user's profile page
         navigate(`/profile/${response.data.id}`);
       })
       .catch((error) => {
