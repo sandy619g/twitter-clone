@@ -23,7 +23,7 @@ function UserProfilePage() {
 
   if (!user) return <p>Loading...</p>;
 
-const backendUrl = import.meta.env.VITE_API_BASE;
+const backendUrl = import.meta.env.VITE_API_URL;
 const avatarUrl = user.avatarUrl?.startsWith('http')
   ? user.avatarUrl
   : `${backendUrl}${user.avatarUrl}`;
