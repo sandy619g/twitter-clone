@@ -4,6 +4,7 @@ import com.twitter.model.User;
 import com.twitter.repository.UserRepository;
 import com.twitter.exception.ResourceNotFoundException;
 
+import com.twitter.service.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ import java.util.UUID;
 @RequestMapping("/api/users")
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    @Autowired
+    FileStorageService fileStorageService;
 
     @Autowired
     private UserRepository userRepo;
@@ -57,11 +61,7 @@ public class UserController {
             user.setBio(bio);
 
             if (avatarFile != null && !avatarFile.isEmpty()) {
-                String fileName = UUID.randomUUID() + "_" + avatarFile.getOriginalFilename();
-                Path path = Paths.get("uploads/" + fileName);
-                Files.createDirectories(path.getParent());
-                Files.write(path, avatarFile.getBytes());
-                user.setAvatarUrl("uploads/" + fileName);
+                user.setAvatarUrl(fileStorageService.saveFile(avatarFile));
             }
 
             return ResponseEntity.ok(userRepo.save(user));
@@ -88,11 +88,7 @@ public class UserController {
 
             if (avatarFile != null && !avatarFile.isEmpty()) {
                 try {
-                    String fileName = UUID.randomUUID() + "_" + avatarFile.getOriginalFilename();
-                    Path path = Paths.get("uploads/" + fileName);
-                    Files.createDirectories(path.getParent());
-                    Files.write(path, avatarFile.getBytes());
-                    user.setAvatarUrl("uploads/" + fileName);
+                    user.setAvatarUrl(fileStorageService.saveFile(avatarFile));
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to upload avatar", e);
                 }

@@ -2,6 +2,7 @@ package com.twitter.controller;
 
 import com.twitter.model.User;
 import com.twitter.repository.UserRepository;
+import com.twitter.service.FileStorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +33,9 @@ public class UserControllerTest {
     @MockitoBean
     private UserRepository userRepo;
 
+    @MockitoBean
+    private FileStorageService fileStorageService;
+
     private User user;
 
     @BeforeEach
@@ -37,7 +43,7 @@ public class UserControllerTest {
         user = new User();
         user.setId(1L);
         user.setUsername("Sandy Doe");
-        user.setHandle("@johndoe");
+        user.setHandle("@sandy");
         user.setLocation("NY");
         user.setBio("Bio here");
         user.setAvatarUrl("uploads/avatar.jpg");
@@ -72,7 +78,7 @@ public class UserControllerTest {
     @Test
     void createUser_shouldSave() throws Exception {
         MockMultipartFile usernamePart = new MockMultipartFile("username", "", "text/plain", "Sandy Doe".getBytes());
-        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@johndoe".getBytes());
+        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@sandy".getBytes());
         MockMultipartFile locationPart = new MockMultipartFile("location", "", "text/plain", "NY".getBytes());
         MockMultipartFile bioPart = new MockMultipartFile("bio", "", "text/plain", "A cool bio".getBytes());
 
@@ -160,4 +166,51 @@ public class UserControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void createUser_shouldFailOnAvatarUpload() throws Exception {
+        MockMultipartFile usernamePart = new MockMultipartFile("username", "", "text/plain", "Sandy Doe".getBytes());
+        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@sandy".getBytes());
+        MockMultipartFile locationPart = new MockMultipartFile("location", "", "text/plain", "NY".getBytes());
+        MockMultipartFile bioPart = new MockMultipartFile("bio", "", "text/plain", "A cool bio".getBytes());
+        MockMultipartFile avatarFile = new MockMultipartFile("avatar", "avatar.jpg", "image/jpeg", "fake".getBytes());
+
+        when(fileStorageService.saveFile(any(MultipartFile.class)))
+                .thenThrow(new IOException("IO error"));
+
+        mockMvc.perform(multipart("/api/users")
+                        .file(usernamePart)
+                        .file(handlePart)
+                        .file(locationPart)
+                        .file(bioPart)
+                        .file(avatarFile)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void updateUser_shouldFailOnAvatarUpload() throws Exception {
+        MockMultipartFile usernamePart = new MockMultipartFile("username", "", "text/plain", "Updated User".getBytes());
+        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@updated".getBytes());
+        MockMultipartFile locationPart = new MockMultipartFile("location", "", "text/plain", "SF".getBytes());
+        MockMultipartFile bioPart = new MockMultipartFile("bio", "", "text/plain", "Bio".getBytes());
+        MockMultipartFile avatarFile = new MockMultipartFile("avatar", "avatar.jpg", "image/jpeg", "image".getBytes());
+
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        when(fileStorageService.saveFile(any(MultipartFile.class)))
+                .thenThrow(new IOException("Simulated IO Error"));
+
+        mockMvc.perform(multipart("/api/users/1")
+                        .file(usernamePart)
+                        .file(handlePart)
+                        .file(locationPart)
+                        .file(bioPart)
+                        .file(avatarFile)
+                        .with(req -> {
+                            req.setMethod("PUT");
+                            return req;
+                        })
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isInternalServerError());
+    }
 }
