@@ -60,12 +60,4 @@ public class PostController {
                 .map(user -> ResponseEntity.ok(user.getPosts()))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        logger.info("Deleting post with id {}", id);
-        if (!postRepo.existsById(id)) throw new ResourceNotFoundException("Post not found with id " + id);
-        postRepo.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
 }

@@ -71,17 +71,37 @@ public class UserController {
     }
 
 
-    @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User data) {
+    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<User> updateUser(
+            @PathVariable Long id,
+            @RequestPart("username") String username,
+            @RequestPart("handle") String handle,
+            @RequestPart("location") String location,
+            @RequestPart("bio") String bio,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile
+    ) {
         return userRepo.findById(id).map(user -> {
-            user.setUsername(data.getUsername());
-            user.setHandle(data.getHandle());
-            user.setLocation(data.getLocation());
-            user.setBio(data.getBio());
-            user.setAvatarUrl(data.getAvatarUrl());
+            user.setUsername(username);
+            user.setHandle(handle);
+            user.setLocation(location);
+            user.setBio(bio);
+
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                try {
+                    String fileName = UUID.randomUUID() + "_" + avatarFile.getOriginalFilename();
+                    Path path = Paths.get("uploads/" + fileName);
+                    Files.createDirectories(path.getParent());
+                    Files.write(path, avatarFile.getBytes());
+                    user.setAvatarUrl("uploads/" + fileName);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to upload avatar", e);
+                }
+            }
+
             return ResponseEntity.ok(userRepo.save(user));
         }).orElse(ResponseEntity.notFound().build());
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {

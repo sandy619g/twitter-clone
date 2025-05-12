@@ -92,49 +92,57 @@ public class UserControllerTest {
     }
 
     @Test
-    void updateUser_found() throws Exception {
-        User updated = new User();
-        updated.setUsername("Roby");
-        updated.setHandle("@roby");
-        updated.setLocation("CA");
-        updated.setBio("new bio");
-        updated.setAvatarUrl("new.png");
+    void updateUser_withMultipart_shouldUpdateUser() throws Exception {
+        MockMultipartFile usernamePart = new MockMultipartFile("username", "", "text/plain", "Updated User".getBytes());
+        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@updated".getBytes());
+        MockMultipartFile locationPart = new MockMultipartFile("location", "", "text/plain", "San Francisco".getBytes());
+        MockMultipartFile bioPart = new MockMultipartFile("bio", "", "text/plain", "Updated bio".getBytes());
+        MockMultipartFile avatarFile = new MockMultipartFile("avatar", "avatar.jpg", "image/jpeg", "image-data".getBytes());
 
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepo.save(any(User.class))).thenReturn(updated);
+        when(userRepo.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        mockMvc.perform(put("/api/users/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                              "username": "Roby",
-                              "handle": "@roby",
-                              "location": "CA",
-                              "bio": "new bio",
-                              "avatarUrl": "new.png"
-                            }
-                        """))
+        mockMvc.perform(multipart("/api/users/1")
+                        .file(usernamePart)
+                        .file(handlePart)
+                        .file(locationPart)
+                        .file(bioPart)
+                        .file(avatarFile)
+                        .with(request -> {
+                            request.setMethod("PUT"); // Mock PUT method
+                            return request;
+                        })
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("Roby"));
+                .andExpect(jsonPath("$.username").value("Updated User"))
+                .andExpect(jsonPath("$.handle").value("@updated"))
+                .andExpect(jsonPath("$.location").value("San Francisco"))
+                .andExpect(jsonPath("$.bio").value("Updated bio"));
     }
+
 
     @Test
-    void updateUser_notFound() throws Exception {
+    void updateUser_withMultipart_userNotFound_shouldReturn404() throws Exception {
         when(userRepo.findById(1L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/users/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                              "username": "Roby",
-                              "handle": "@roby",
-                              "location": "CA",
-                              "bio": "new bio",
-                              "avatarUrl": "new.png"
-                            }
-                        """))
+        MockMultipartFile usernamePart = new MockMultipartFile("username", "", "text/plain", "New Name".getBytes());
+        MockMultipartFile handlePart = new MockMultipartFile("handle", "", "text/plain", "@new".getBytes());
+        MockMultipartFile locationPart = new MockMultipartFile("location", "", "text/plain", "New York".getBytes());
+        MockMultipartFile bioPart = new MockMultipartFile("bio", "", "text/plain", "New bio".getBytes());
+
+        mockMvc.perform(multipart("/api/users/1")
+                        .file(usernamePart)
+                        .file(handlePart)
+                        .file(locationPart)
+                        .file(bioPart)
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isNotFound());
     }
+
 
     @Test
     void deleteUser_found() throws Exception {
@@ -151,4 +159,5 @@ public class UserControllerTest {
         mockMvc.perform(delete("/api/users/1"))
                 .andExpect(status().isNotFound());
     }
+
 }

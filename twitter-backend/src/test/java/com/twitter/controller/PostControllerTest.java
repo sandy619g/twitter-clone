@@ -99,22 +99,6 @@ public class PostControllerTest {
     }
 
     @Test
-    void deletePost_found() throws Exception {
-        when(postRepo.existsById(1L)).thenReturn(true);
-
-        mockMvc.perform(delete("/api/posts/1"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void deletePost_notFound() throws Exception {
-        when(postRepo.existsById(1L)).thenReturn(false);
-
-        mockMvc.perform(delete("/api/posts/1"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     void getAllPosts_postWithoutUser_shouldHandleGracefully() throws Exception {
         Post postWithoutUser = new Post();
         postWithoutUser.setId(2L);
