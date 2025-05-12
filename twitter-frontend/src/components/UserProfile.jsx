@@ -1,9 +1,10 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 
 function UserProfilePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
@@ -20,6 +21,14 @@ function UserProfilePage() {
       api.get(`/api/posts/user/${id}`).then(res => setPosts(res.data));
     });
   };
+
+  const handleDelete = () => {
+      if (confirm("Are you sure you want to delete your profile?")) {
+        api.delete(`/api/users/${id}`).then(() => {
+          navigate('/');
+        });
+      }
+    };
 
   if (!user) return <p>Loading...</p>;
 
@@ -41,6 +50,11 @@ const avatarUrl = user.avatarUrl?.startsWith('http')
         <p><strong>Handle:</strong> {user.handle}</p>
         <p><strong>Location:</strong> {user.location}</p>
         <p><strong>Bio:</strong> {user.bio}</p>
+
+        <div style={{ marginTop: 20 }}>
+            <button onClick={() => navigate(`/edit-profile/${id}`)}>Edit Profile</button>
+            <button onClick={handleDelete} style={{ marginLeft: 10 }}>Delete Profile</button>
+        </div>
       </div>
       </div>
       <div style={{ marginTop: 30 }}>

@@ -3,6 +3,7 @@ import HomePage from './components/HomePage';
 import FeedPage from './components/FeedPage';
 import CreateUserPage from './components/CreateUser';
 import UserProfilePage from './components/UserProfile';
+import EditProfile from './components/EditProfile';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
         <Route path="/feed" element={<FeedPage />} />
         <Route path="/create-user" element={<CreateUserPage />} />
         <Route path="/profile/:id" element={<UserProfilePage />} />
+        <Route path="/user/:id" element={<UserProfilePage />} />
+        <Route path="/edit-profile/:id" element={<EditProfile />} />
       </Routes>
     </Router>
   );
