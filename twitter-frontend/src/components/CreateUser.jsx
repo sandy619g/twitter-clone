@@ -67,9 +67,9 @@ function CreateUserPage() {
         onChange={handleAvatarChange}
         accept="image/*"
       />
-      {avatar && (
+      {/* {avatar && (
           <img src={URL.createObjectURL(avatar)} alt="Preview" width={80} style={{ borderRadius: '50%', marginTop: 10 }} />
-       )}
+       )} */}
       <button onClick={handleCreate}>Create User</button>
     </div>
   );

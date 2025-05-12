@@ -12,6 +12,30 @@ Before setting up the backend, ensure you have the following installed:
 - [Maven](https://maven.apache.org/)
 - [Postman](https://www.postman.com/) (optional, for testing the API)
 
+## Tech Stack & Libraries
+
+- **Java**: 21.0 (JDK)
+- **Spring Boot**: 3.4.5
+- **Lombok**: Generate boiler plate code
+- **Jackson**: JSON serialization and deserialization
+- **JUnit5**: For unit testing
+- **Slf4j/Logback**: For logging
+- **JaCoCo**: For Code Coverage
+
+## Architecture & Design Decisions
+
+### 1. **Microservices Architecture**
+- Single responsibility controllers to handle user creation and post creation.
+- File upload service is loosely coupled from REST API to make it easily modifiable as required.
+- Global exception handler to manage all exceptions at single place.
+
+### 2. **Logging**
+- The service uses **Slf4j** for structured logging.
+
+### 3. **Testing**
+- Unit tests are written using **JUnit5** and **Mockito**. Code Coverage is calculated using **JaCoCo** library.
+
+
 ### 🚀 Getting Started
 
 1. Clone the repository (if you haven't already):
@@ -62,4 +86,12 @@ The frontend is built using [React](https://reactjs.org/) with [Vite](https://vi
    ```bash
    http://localhost:5173
    ```      
-
+5. **Run Covergae Report**:
+   ```bash
+   mvn clean verify
+   ```
+open the below file to see detailed report
+   ```bash
+      target/site/jacoco/index.html
+   ```
+![Code Coverage Report](/code-coverage.png)
